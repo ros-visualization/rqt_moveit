@@ -19,7 +19,8 @@
    tracker (not MoveIt!'s main tracker).
   </description>
 
-  <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
+  <maintainer email="iisaito@kinugarage.com">Isaac I.Y. Saito</maintainer>
+  <maintainer email="arne.hitzmann@gmail.com">Arne Hitzmann</maintainer>
   <author>Isaac Saito</author>
 
   <license>BSD</license>
