@@ -35,15 +35,15 @@
 import os
 import sys
 import threading
-import xmlrpclib
 
+import rclpy
+
+from ament_index_python.packages import get_package_share_directory
 from python_qt_binding import loadUi
+from python_qt_binding.QtWidgets import QWidget
 from python_qt_binding.QtCore import QModelIndex, QTimer, Signal
 from python_qt_binding.QtGui import QStandardItem, QStandardItemModel
-from python_qt_binding.QtWidgets import QWidget
-import rospkg
-import rospy
-from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
+from rqt_gui.main import Main
 from rqt_topic.topic_widget import TopicWidget
 
 
@@ -63,8 +63,7 @@ class MoveitWidget(QWidget):
         """
         @type parent: MoveitMain
         """
-
-        self._ros_master = xmlrpclib.ServerProxy(os.environ['ROS_MASTER_URI'])
+        self._node = rclpy.create_node('rqt_moveit_node')
         self._stop_event = threading.Event()
 
         self._nodes_monitored = ['/move_group']
@@ -80,14 +79,12 @@ class MoveitWidget(QWidget):
         self._plugin_context = plugin_context
         self._refresh_rate = 5  # With default value
 
-        self._rospack = rospkg.RosPack()
-        ui_file = os.path.join(self._rospack.get_path('rqt_moveit'),
-                               'resource', 'moveit_top.ui')
-        loadUi(ui_file, self, {'TopicWidget': TopicWidget})
+        package_share_dir = get_package_share_directory('rqt_moveit')
+        ui_file = os.path.join(package_share_dir, 'resource', 'moveit_top.ui')
+        loadUi(ui_file, self)
 
-        # Custom widget classes don't show in QSplitter when they instantiated
-        # in .ui file and not explicitly added to QSplitter like this. Thus
-        # this is a workaround.
+        # Create and add topics widget programmatically
+        self._widget_topic = TopicWidget(self._node)
         self._splitter.addWidget(self._widget_topic)
 
         self._spinbox_refreshrate.valueChanged.connect(self._update_refreshrate)
@@ -110,6 +107,13 @@ class MoveitWidget(QWidget):
         _col_names_paramtable = ['Param name', 'Found on Parameter Server?']
         self._param_check_thread = self._init_monitor_parameters(_col_names_paramtable)
         self._param_check_thread.start()
+
+    def _has_param(self, param_name):
+        try:
+            parameter = self._node.get_parameter(param_name)
+            return True
+        except rclpy.exceptions.ParameterNotDeclaredException as e:
+            return False
 
     def _init_monitor_nodes(self):
         """
@@ -140,23 +144,15 @@ class MoveitWidget(QWidget):
         @type nodes_monitored: str[]
         @type stop_event: Event()
         """
-        rosnode_dynamically_loaded = __import__('rosnode')
         while True:
             for nodename in nodes_monitored:
-                try:
-                    registered_nodes = rosnode_dynamically_loaded.get_node_names()
-                    is_node_running = nodename in registered_nodes
-
-                except rosnode_dynamically_loaded.ROSNodeIOException as e:
-                    # TODO: Needs to be indicated on GUI
-                    # (eg. PluginContainerWidget)
-                    rospy.logerr(e.message)
-                    is_node_running = False
+                registered_nodes = self._node.get_node_names()
+                is_node_running = nodename in registered_nodes
 
                 signal.emit(is_node_running, nodename)
-                rospy.logdebug('_update_output_nodes')
+                self._node.get_logger().debug('_update_output_nodes')
             if stop_event.wait(self._refresh_rate):
-                del rosnode_dynamically_loaded
+                # del rosnode_dynamically_loaded
                 return
 
     def _init_monitor_topics(self):
@@ -179,19 +175,18 @@ class MoveitWidget(QWidget):
         @type stop_event: Event()
         """
         while True:
-            code, msg, val = self._ros_master.getPublishedTopics('/rqt_moveit_update_script', "")
-            if code == 1:
-                published_topics = dict(val)
-            else:
-                rospy.logerr("Communication with rosmaster failed")
-
+            published_topics = dict(self._node.get_topic_names_and_types())
             registered_topics = []
             for topic in topics_monitored:
-                if topic[0] in published_topics and topic[1] == published_topics.get(topic[0]):
-                    registered_topics.append((topic[0], published_topics.get(topic[0])))
+                # If topic is published
+                if topic[0] in published_topics:
+                    topic_types = published_topics.get(topic[0])
+                    # And has the same type
+                    if topic[1] in topic_types:
+                        registered_topics.append((topic[0], published_topics.get(topic[0])))
 
             signal.emit(list(registered_topics))
-            rospy.logdebug('_update_output_topics')
+            self._node.get_logger().debug('_update_output_topics')
             if stop_event.wait(self._refresh_rate):
                 return
 
@@ -226,7 +221,7 @@ class MoveitWidget(QWidget):
         # TODO: What this method does is exactly the same with
         # monitor_parameters. Unify them.
 
-        rospy.logdebug('is_node_running={} par_name={}'.format(is_node_running, node_name))
+        self._node.get_logger().debug('is_node_running={} par_name={}'.format(is_node_running, node_name))
         node_name = str(node_name)
         node_qitem = None
         if node_name not in self._node_qitems:
@@ -281,20 +276,10 @@ class MoveitWidget(QWidget):
 
         while True:
             has_param = False
-
             for param_name in params_monitored:
-                is_rosmaster_running = RqtRoscommUtil.is_roscore_running()
-
-                try:
-                    if is_rosmaster_running:
-                        # Only if rosmaster is running, check if the parameter
-                        # exists or not.
-                        has_param = rospy.has_param(param_name)
-                except rospy.exceptions.ROSException as e:
-                    rospy.logerr('Exception upon rospy.has_param {}'.format(e.message))
-                    self.sig_sysmsg.emit('Exception upon rospy.has_param {}'.format(e.message))
+                has_param = self._has_param(param_name)
                 signal.emit(has_param, param_name)
-                rospy.logdebug('has_param {}, check_param_alive: {}'.format(has_param, param_name))
+                self._node.get_logger().debug('has_param {}, check_param_alive: {}'.format(has_param, param_name))
             if stop_event.wait(self._refresh_rate):
                 return
 
@@ -305,7 +290,7 @@ class MoveitWidget(QWidget):
         @type has_param: bool
         @type param_name: str
         """
-        rospy.logdebug('has_param={} par_name={}'.format(has_param,
+        self._node.get_logger().debug('has_param={} par_name={}'.format(has_param,
                                                          param_name))
         param_name = str(param_name)
         param_qitem = None
@@ -363,14 +348,16 @@ class MoveitWidget(QWidget):
             self._topic_monitor_thread = None
 
         except RuntimeError as e:
-            rospy.logerr(e)
+            self._node.get_logger().err(e)
             raise e
 
 
-if __name__ == '__main__':
-    # main should be used only for debug purpose.
-    # This moveites this QWidget as a standalone rqt gui.
-    from rqt_gui.main import Main
+def main(args=None):
+    main_obj = Main()
+    sys.exit(
+        main_obj.main(
+            sys.argv,
+            standalone='rqt_moveit.moveit_plugin.MoveitPlugin'
+        )
+    )
 
-    main = Main()
-    sys.exit(main.main(sys.argv, standalone='rqt_moveit'))
