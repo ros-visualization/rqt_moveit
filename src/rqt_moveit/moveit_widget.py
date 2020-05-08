@@ -73,7 +73,6 @@ class MoveitWidget(QWidget):
         self._selected_topics = [('/pointcloud', 'sensor_msgs/msg/PointCloud'),
                                  ('/pointcloud2', 'sensor_msgs/msg/PointCloud2'),
                                  ('/image', 'sensor_msgs/msg/Image'),
-                                 ('/rosout', 'rcl_interfaces/msg/Log'),
                                  ('/camera_info', 'sensor_msgs/msg/CameraInfo')]
         self._params_monitored = ['robot_description',
                                   'robot_description_semantic']
