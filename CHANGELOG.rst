@@ -2,6 +2,11 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-06-01)
+------------------
+* removed testing topic
+* merged ROS 2 Port
+
 0.5.8 (2020-04-19)
 ------------------
 * updated package to format 3
@@ -104,5 +109,3 @@ Changelog for package rqt_moveit
 0.2.13 (2013-04-09)
 -------------------
 * First public release for Groovy
-
-
