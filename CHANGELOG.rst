@@ -2,6 +2,10 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.9 (2020-06-02)
+------------------
+* use catkin_install_python instead of install
+
 0.5.8 (2020-04-19)
 ------------------
 * updated package to format 3
@@ -104,5 +108,3 @@ Changelog for package rqt_moveit
 0.2.13 (2013-04-09)
 -------------------
 * First public release for Groovy
-
-
