@@ -2,6 +2,10 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2020-06-03)
+------------------
+* removed non-resolvable build_tool dependency (fix for releasing)
+
 1.0.0 (2020-06-01)
 ------------------
 * removed testing topic
