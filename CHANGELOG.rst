@@ -2,6 +2,10 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.10 (2021-04-07)
+-------------------
+* fixed renaming of xmlrpc in python 3
+
 0.5.9 (2020-06-02)
 ------------------
 * use catkin_install_python instead of install
