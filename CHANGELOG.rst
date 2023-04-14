@@ -2,6 +2,11 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.11 (2023-04-14)
+-------------------
+* Import setup from setuptools instead of distutils.core
+* added LICENSE file
+
 0.5.10 (2021-04-07)
 -------------------
 * fixed renaming of xmlrpc in python 3
