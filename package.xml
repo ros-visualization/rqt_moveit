@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rqt_moveit</name>
-  <version>0.5.10</version>
+  <version>0.5.11</version>
   <description>
    An rqt-based tool that assists monitoring tasks
    for <a href = "http://ros.org/wiki/moveit">MoveIt!</a> motion planner
