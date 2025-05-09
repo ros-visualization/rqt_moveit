@@ -2,9 +2,13 @@
 Changelog for package rqt_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.13 (2025-05-09)
+-------------------
+* Potetially final release for ROS1 Noetic https://github.com/ros-visualization/rqt_moveit/issues/12
+
 0.5.12 (2025-05-09)
 -------------------
-* Potentially the final release for ROS1 Noetic
+* Invalid release. See https://github.com/ros-visualization/rqt_moveit/issues/12#issuecomment-2867435721
 
 0.5.11 (2023-04-14)
 -------------------
